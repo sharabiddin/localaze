@@ -1,6 +1,6 @@
 name: localaze
 description: A Flutter package for handling translations with support for dynamic parameters.
-version: 0.0.1
+version: 0.0.2
 homepage: https://github.com/yourusername/localaze
 
 environment:
