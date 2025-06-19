@@ -3,13 +3,71 @@ import 'package:flutter/cupertino.dart';
 import '_default_config.dart';
 import 'mod.dart';
 
-/// The class that will be used to translate the keys
+/// Core translation class that handles string translations and parameter replacement.
+/// This class provides static methods for translating strings and replacing dynamic parameters.
+/// 
+/// The translator uses a configuration ([TranslationsConfig]) that defines:
+/// - Supported languages
+/// - Default language
+/// - Translation structure
+/// - Parameter patterns
+/// - Fallback values
+/// 
+/// Example:
+/// ```dart
+/// // Configure the translator
+/// Translator.config = MyConfig();
+/// 
+/// // Translation setup:
+/// // {
+/// //   'greeting': {
+/// //     'en': 'Hello {name}!',
+/// //     'es': '¡Hola {name}!'
+/// //   }
+/// // }
+/// 
+/// // Translate a string
+/// final translated = Translator.translate(
+///   'greeting',
+///   'en',
+///   ParamModel(key: 'name', value: 'John')
+/// );
+/// 
+/// // Just replace parameters in a string with placeholders
+/// final dynamized = Translator.dynamize(
+///   'Hello {name}!',
+///   ParamModel(key: 'name', value: 'John')
+/// );
+/// ```
 class Translator {
-  /// The configuration that will be used to translate the keys
-  /// You can set the configuration by creating your own [TranslationsConfig] instance or by using the [DefaultConfig] copyWith method
+  /// The configuration that will be used for all translations.
+  /// You can set this to your own [TranslationsConfig] implementation,
+  /// or modify the default one using [DefaultConfig.copyWith].
+  /// 
+  /// Example:
+  /// ```dart
+  /// Translator.config = DefaultConfig().copyWith(
+  ///   defaultLanguage: 'es',
+  ///   supportedLanguages: {'en', 'es', 'fr'},
+  /// );
+  /// ```
   static TranslationsConfig config = DefaultConfig();
 
-  /// Adds dynamic parameters to the target text, package private method
+  /// Replaces parameter placeholders in the text with provided values.
+  /// This is a low-level method used internally by [translate] and the [DynX] extension.
+  /// 
+  /// The method searches for patterns matching [TranslationsConfig.paramPattern]
+  /// (by default {paramName}) and replaces them with corresponding parameter values.
+  /// 
+  /// Example:
+  /// ```dart
+  /// final text = Translator.dynamize(
+  ///   'Hello {name}!',
+  ///   ParamModel(key: 'name', value: 'John')
+  /// ); // Result: 'Hello John!'
+  /// ```
+  /// 
+  /// If a parameter is not provided for a placeholder, returns [TranslationsConfig.absentValue].
   @protected
   static String dynamize(
     String targetText, [
@@ -33,10 +91,38 @@ class Translator {
     );
   }
 
-  /// Translates the key to the target language
-  /// 1. If the language code is not specified, the default language will be used
-  /// 2. If the key is not found, the absent key will be returned
-  /// 3. If the language code is not supported, the default language will be used
+  /// Translates a key to the target language and replaces any parameters.
+  /// 
+  /// The translation process follows these steps:
+  /// 1. Validates and resolves the language code
+  /// 2. Finds the translation based on [TranslationsConfig.translationsStructure]
+  /// 3. Replaces any parameters in the translated string
+  /// 
+  /// Example:
+  /// ```dart
+  /// // With translation setup:
+  /// // {
+  /// //   'formal_greeting': {
+  /// //     'en': 'Welcome, {title} {name}!',
+  /// //     'es': '¡Bienvenido, {title} {name}!'
+  /// //   }
+  /// // }
+  /// 
+  /// final greeting = Translator.translate(
+  ///   'formal_greeting',
+  ///   'en',
+  ///   ParamModel(key: 'title', value: 'Mr.'),
+  ///   ParamModel(key: 'name', value: 'John')
+  /// ); // Result: 'Welcome, Mr. John!'
+  /// ```
+  /// 
+  /// Parameters:
+  /// - [key]: The translation key to look up (e.g., 'formal_greeting')
+  /// - [languageCode]: Target language code (falls back to default if null or unsupported)
+  /// - [param1], [param2], [param3]: Optional parameters to replace in the translated string
+  /// 
+  /// Returns the translated string with parameters replaced.
+  /// If the key is not found, returns [TranslationsConfig.absentKey].
   static String translate(String key, String? languageCode,
       [ParamModel? param1, ParamModel? param2, ParamModel? param3]) {
     late final String targetText;
@@ -51,9 +137,10 @@ class Translator {
     return dynamize(targetText, param1, param2, param3);
   }
 
-  /// Returns the supported language code respecting the provided language code
-  /// note: If the language code is not supported, the default language will be returned
-
+  /// Returns a supported language code based on the provided code.
+  /// If the provided code is null or not supported, returns the default language.
+  /// 
+  /// This is an internal method used by [translate] to ensure a valid language code.
   static String _getSupportedLanguageCode(String? languageCode) {
     if (languageCode == null) {
       return config.defaultLanguage;

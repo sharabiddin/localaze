@@ -1,19 +1,21 @@
 name: localaze
-description: "A new localization helper package."
+description: A Flutter package for handling translations with support for dynamic parameters.
 version: 0.0.1
-homepage: https://github.com/sharabiddin/localaze
+homepage: https://github.com/yourusername/localaze
 
 environment:
-  sdk: '>=3.4.3 <4.0.0'
-  flutter: ">=1.17.0"
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: ^2.0.0
 
 flutter:
 
