@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '_default_config.dart';
@@ -14,6 +15,9 @@ class Localaze extends ChangeNotifier {
 
   /// Private constructor
   Localaze._();
+
+  /// Flag to track initialization
+  static bool _isInitialized = false;
 
   /// The current configuration
   TranslationsConfig config = DefaultConfig();
@@ -41,12 +45,13 @@ class Localaze extends ChangeNotifier {
 
   /// Initialize Localaze with configuration and restore saved locale
   static Future<void> init({TranslationsConfig? config}) async {
+    if (_isInitialized) return;
+
     if (config != null) {
       instance.config = config;
+      // Always sync Translator config with instance config
+      Translator.config = config;
     }
-
-    // Always sync Translator config with instance config
-    Translator.config = instance.config;
 
     final prefs = await SharedPreferences.getInstance();
     final savedLocale = prefs.getString(_localeKey);
@@ -58,7 +63,11 @@ class Localaze extends ChangeNotifier {
       instance._currentLocale = Locale(instance.config.defaultLanguage);
     }
 
-    instance.notifyListeners();
+    _isInitialized = true;
+    // Only notify if we're not in initial setup
+    if (WidgetsBinding.instance.schedulerPhase != SchedulerPhase.idle) {
+      instance.notifyListeners();
+    }
   }
 
   /// Set the current locale and notify listeners
@@ -98,6 +107,8 @@ class Localaze extends ChangeNotifier {
 
   /// Update the configuration
   void updateConfig(TranslationsConfig newConfig) {
+    if (config == newConfig) return;
+    
     config = newConfig;
     // Update Translator config to match
     Translator.config = newConfig;
@@ -128,15 +139,14 @@ class Localaze extends ChangeNotifier {
   /// });
   /// ```
   void updateTranslations(Map<String, Map<String, String>> newTranslations) {
-    print('Updating translations in Localaze instance...');
+    if (config.translations == newTranslations) return;
+
     // Create a new config with updated translations
     final newConfig = config.copyWith(translations: newTranslations);
     config = newConfig;
     // Update Translator config to match
     Translator.config = newConfig;
     _translationsVersion++; // Increment version on translations update
-    print('Translations updated, notifying listeners...');
     notifyListeners();
-    print('Listeners notified');
   }
 }

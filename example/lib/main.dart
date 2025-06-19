@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:localaze/localaze.dart';
+import 'dart:developer' as developer;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -8,15 +9,9 @@ void main() async {
   // Initialize Localaze with configuration
   await Localaze.init(
     config: DefaultConfig(
-      defaultLanguage: 'en',
-      supportedLanguages: {'en', 'es', 'fr'},
-      translationsStructure: TranslationsStructureEnum.languageCodeFirst,
-      paramPattern: RegExp(r'{(\w+)}'),
-      absentKey: 'Translation not found',
-      absentValue: 'Value not found',
       translations: {
         'en': {
-          'welcome': 'Welcome!',
+          'welcome': 'Welcome to Localaze!',
           'hello_name': 'Hello, {name}!',
           'items_count': 'You have {count} items',
           'profile.title': 'Profile',
@@ -25,7 +20,7 @@ void main() async {
           'current_date': 'Current date: {date}',
         },
         'es': {
-          'welcome': '¡Bienvenido!',
+          'welcome': '¡Bienvenido a Localaze!',
           'hello_name': '¡Hola, {name}!',
           'items_count': 'Tienes {count} artículos',
           'profile.title': 'Perfil',
@@ -34,7 +29,7 @@ void main() async {
           'current_date': 'Fecha actual: {date}',
         },
         'fr': {
-          'welcome': 'Bienvenue!',
+          'welcome': 'Bienvenue à Localaze!',
           'hello_name': 'Bonjour, {name}!',
           'items_count': 'Vous avez {count} articles',
           'profile.title': 'Profil',
@@ -43,6 +38,12 @@ void main() async {
           'current_date': 'Date actuelle: {date}',
         },
       },
+      supportedLanguages: {'en', 'es', 'fr'},
+      defaultLanguage: 'en',
+      translationsStructure: TranslationsStructureEnum.languageCodeFirst,
+      paramPattern: RegExp(r'{(\w+)}'),
+      absentKey: 'Translation not found',
+      absentValue: 'Value not found',
     ),
   );
 
@@ -51,7 +52,7 @@ void main() async {
 
 // Function to update translations
 void updateTranslationsToDemo() {
-  print('Updating translations...');
+  developer.log('Updating translations...', name: 'localaze.demo');
   Localaze.instance.updateTranslations({
     'en': {
       'welcome': 'Welcome to the Localaze Demo!',
@@ -91,7 +92,10 @@ class MyApp extends StatelessWidget {
     return ListenableBuilder(
       listenable: Localaze.instance,
       builder: (context, _) {
-        print('Rebuilding MaterialApp with current locale: ${Localaze.instance.currentLocale.languageCode}');
+        developer.log(
+          'Rebuilding MaterialApp with current locale: ${Localaze.instance.currentLocale.languageCode}',
+          name: 'localaze.demo',
+        );
         return MaterialApp(
           title: 'Localaze Demo',
           locale: Localaze.instance.currentLocale,
@@ -121,7 +125,10 @@ class MyHomePage extends StatelessWidget {
     final currentDate = DateTime.now();
     final localaze = Localaze.of(context);
 
-    print('Rebuilding MyHomePage with current locale: ${localaze.currentLocale.languageCode}');
+    developer.log(
+      'Rebuilding MyHomePage with current locale: ${localaze.currentLocale.languageCode}',
+      name: 'localaze.demo',
+    );
 
     return Scaffold(
       appBar: AppBar(

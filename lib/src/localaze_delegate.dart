@@ -36,6 +36,9 @@ class LocalazeDelegate extends LocalizationsDelegate<Localaze> {
   /// Keep track of the translations version to detect changes
   final int translationsVersion;
 
+  /// Keep track of the current locale to avoid unnecessary reloads
+  Locale? _currentLocale;
+
   LocalazeDelegate({
     this.overrideLocale,
     this.useDeviceLocale = true,
@@ -55,7 +58,8 @@ class LocalazeDelegate extends LocalizationsDelegate<Localaze> {
     // Determine which locale to use
     final localeToUse = overrideLocale ?? (useDeviceLocale ? locale : null);
 
-    if (localeToUse != null) {
+    if (localeToUse != null && _currentLocale != localeToUse) {
+      _currentLocale = localeToUse;
       // Set the locale if it's supported
       if (isSupported(localeToUse)) {
         await Localaze.instance.setLocale(localeToUse);
@@ -70,8 +74,10 @@ class LocalazeDelegate extends LocalizationsDelegate<Localaze> {
 
   @override
   bool shouldReload(LocalazeDelegate old) {
-    return old.overrideLocale != overrideLocale || 
+    final shouldReload = old.overrideLocale != overrideLocale || 
            old.useDeviceLocale != useDeviceLocale ||
            old.translationsVersion != Localaze.instance.translationsVersion;
+    
+    return shouldReload;
   }
 } 
